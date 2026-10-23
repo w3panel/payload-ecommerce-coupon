@@ -259,6 +259,8 @@ export const createReferralProgramsCollection = (
 
   return {
     slug: collections.referralProgramsSlug,
+    versions: false,
+    authorship: false,
     admin: {
       useAsTitle: 'name',
       defaultColumns: ['id', 'name', 'commissionRules', 'isActive'],

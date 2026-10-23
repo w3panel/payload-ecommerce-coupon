@@ -10,6 +10,8 @@ export const createCouponsCollection = (
 
   return {
     slug: collections.couponsSlug,
+    versions: false,
+    authorship: false,
     admin: {
       useAsTitle: 'code',
       defaultColumns: ['code', 'type', 'value', 'activeFrom', 'activeUntil'],

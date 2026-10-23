@@ -16,6 +16,8 @@ export const createReferralCodesCollection = (
 
   return {
     slug: collections.referralCodesSlug,
+    versions: false,
+    authorship: false,
     admin: {
       useAsTitle: 'code',
       defaultColumns: ['code', 'normalizedCode', 'partner', 'program', 'usageCount', 'isActive'],
