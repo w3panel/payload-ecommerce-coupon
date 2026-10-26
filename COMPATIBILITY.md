@@ -2,18 +2,20 @@
 
 ## Payload CMS Compatibility
 
-| Package                      | Version | Status       |
-| ---------------------------- | ------- | ------------ |
-| payload                      | ^3.0.0  | ✅ Supported |
-| @payloadcms/plugin-ecommerce | >=3.0.0 | ✅ Required  |
+| Package                      | Version              | Status       |
+| ---------------------------- | -------------------- | ------------ |
+| payload                      | >=4.0.0-beta.4 <5    | ✅ Supported |
+| @payloadcms/plugin-ecommerce | >=4.0.0-beta.4 <5    | ✅ Required  |
+
+> Payload 3 consumers should stay on `@wtree/payload-ecommerce-coupon@3` (`latest` dist-tag).
 
 ## Node.js Compatibility
 
 | Node Version | Status                     |
 | ------------ | -------------------------- |
-| 18.x         | ✅ Supported               |
-| 20.x         | ✅ Supported (Recommended) |
+| 20.x         | ✅ Supported               |
 | 22.x         | ✅ Supported               |
+| 24.x         | ✅ Supported (Recommended) |
 
 ## Framework Compatibility
 
