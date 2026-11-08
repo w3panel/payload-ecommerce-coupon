@@ -477,9 +477,7 @@ import type { CollectionConfig } from 'payload'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
   endpoints: [
     {
       path: '/:id/tracking',
@@ -503,9 +501,7 @@ import type { GlobalConfig } from 'payload'
 
 export const Settings: GlobalConfig = {
   slug: 'settings',
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
   endpoints: [
     {
       path: '/clear-cache',
@@ -552,9 +548,7 @@ Add endpoints based on config options.
 ```ts
 export const MyCollection: CollectionConfig = {
   slug: 'posts',
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
   endpoints: [
     // Always included
     {

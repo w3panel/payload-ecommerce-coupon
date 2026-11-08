@@ -199,7 +199,11 @@ Default paths (customizable via `endpoints` config):
 ## Frontend helpers
 
 ```ts
-import { useCouponCode, validateCouponCode, usePartnerStats } from '@wtree/payload-ecommerce-coupon/client'
+import {
+  useCouponCode,
+  validateCouponCode,
+  usePartnerStats,
+} from '@wtree/payload-ecommerce-coupon/client'
 ```
 
 - `useCouponCode({ code, cartID, customerEmail? })`
