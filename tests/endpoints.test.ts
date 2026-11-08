@@ -170,6 +170,8 @@ describe('Apply Coupon Endpoint', () => {
       expect(mockPayload.find).toHaveBeenCalledWith({
         collection: 'coupons',
         limit: 1,
+        // Lookups bypass collection read access; the endpoint enforces who may apply codes.
+        overrideAccess: true,
         where: { normalizedCode: { equals: 'TEST10' } },
       })
       expect(response.status).toBe(200)
@@ -342,6 +344,8 @@ describe('Apply Coupon Endpoint', () => {
       expect(mockPayload.find).toHaveBeenCalledWith({
         collection: 'referral-codes',
         limit: 1,
+        // Lookups bypass collection read access; the endpoint enforces who may apply codes.
+        overrideAccess: true,
         where: { normalizedCode: { equals: 'REF123' } },
       })
       expect(response.status).toBe(200)

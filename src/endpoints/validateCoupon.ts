@@ -68,6 +68,9 @@ async function findByNormalizedCode({
       normalizedCode: { equals: normalizedCode },
     },
     limit: 1,
+    // Lookup only: the endpoint checks who may apply a code. Shoppers cannot read these
+    // collections, so without this every code (valid or not) threw Forbidden -> 500.
+    overrideAccess: true,
   })
 
   if (normalizedQuery?.docs?.length) return normalizedQuery.docs[0]
@@ -78,6 +81,7 @@ async function findByNormalizedCode({
       code: { equals: normalizedCode.toLowerCase() },
     },
     limit: 1,
+    overrideAccess: true,
   })
 
   if (lowerQuery?.docs?.length) return lowerQuery.docs[0]
@@ -88,6 +92,7 @@ async function findByNormalizedCode({
       code: { equals: normalizedCode.toUpperCase() },
     },
     limit: 1,
+    overrideAccess: true,
   })
 
   if (upperQuery?.docs?.length) return upperQuery.docs[0]
@@ -98,6 +103,7 @@ async function findByNormalizedCode({
       code: { equals: normalizedCode },
     },
     limit: 1,
+    overrideAccess: true,
   })
 
   return exactQuery?.docs?.[0] ?? null
