@@ -7,7 +7,9 @@ import {
   getProgramMinimumOrderAmount,
 } from '../utilities/calculateValues'
 import { majorToMinor2dp, minorToMajor2dp } from '../utilities/ecommerceMoney'
+import { findByNormalizedCode } from '../utilities/findByNormalizedCode'
 import { roundTo2 } from '../utilities/roundTo2'
+import { resolveTenantId, type TenantId } from '../utilities/tenant'
 
 type Args = {
   pluginConfig: SanitizedCouponPluginOptions
@@ -53,62 +55,6 @@ async function ensureRequestData(req: any): Promise<Record<string, unknown>> {
   return req.data
 }
 
-async function findByNormalizedCode({
-  payload,
-  collection,
-  normalizedCode,
-}: {
-  payload: any
-  collection: string
-  normalizedCode: string
-}): Promise<any | null> {
-  const normalizedQuery = await payload.find({
-    collection,
-    where: {
-      normalizedCode: { equals: normalizedCode },
-    },
-    limit: 1,
-    // Lookup only: the endpoint checks who may apply a code. Shoppers cannot read these
-    // collections, so without this every code (valid or not) threw Forbidden -> 500.
-    overrideAccess: true,
-  })
-
-  if (normalizedQuery?.docs?.length) return normalizedQuery.docs[0]
-
-  const lowerQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode.toLowerCase() },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  if (lowerQuery?.docs?.length) return lowerQuery.docs[0]
-
-  const upperQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode.toUpperCase() },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  if (upperQuery?.docs?.length) return upperQuery.docs[0]
-
-  const exactQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  return exactQuery?.docs?.[0] ?? null
-}
-
 export const validateCouponHandler =
   ({ pluginConfig }: Args): PayloadHandler =>
   async (req) => {
@@ -135,6 +81,10 @@ export const validateCouponHandler =
     }
 
     try {
+      // Validate has no cart to trust (it only reads cartID for referral minimums), so the tenant
+      // comes from the request. Apply re-checks against the cart's own tenant.
+      const tenantId = await resolveTenantId({ pluginConfig, req })
+
       if (pluginConfig.enableReferrals) {
         const canApplyReferral = await Promise.resolve(
           pluginConfig.policies.canApplyReferral({
@@ -153,6 +103,7 @@ export const validateCouponHandler =
           normalizedCode,
           cartID,
           pluginConfig,
+          tenantId,
         })
       }
 
@@ -170,6 +121,7 @@ export const validateCouponHandler =
         cartValue,
         customerEmail,
         pluginConfig,
+        tenantId,
       })
     } catch (error) {
       console.error('Code validation error:', error)
@@ -183,12 +135,14 @@ async function validateCouponCode({
   cartValue,
   customerEmail,
   pluginConfig,
+  tenantId,
 }: {
   payload: any
   normalizedCode: string
   cartValue?: number
   customerEmail?: string
   pluginConfig: SanitizedCouponPluginOptions
+  tenantId: TenantId | null
 }) {
   const fields = pluginConfig.integration.fields
   const cartMinor = pluginConfig.integration?.cartAmountsInMinorUnits === true
@@ -196,6 +150,8 @@ async function validateCouponCode({
     payload,
     collection: pluginConfig.collections.couponsSlug,
     normalizedCode,
+    pluginConfig,
+    tenantId,
   })
 
   if (!couponData) {
@@ -315,11 +271,13 @@ async function validateReferralCode({
   normalizedCode,
   cartID,
   pluginConfig,
+  tenantId,
 }: {
   payload: any
   normalizedCode: string
   cartID?: string | number
   pluginConfig: SanitizedCouponPluginOptions
+  tenantId: TenantId | null
 }) {
   const collections = pluginConfig.integration.collections
   const resolvers = pluginConfig.integration.resolvers
@@ -329,6 +287,8 @@ async function validateReferralCode({
     payload,
     collection: pluginConfig.collections.referralCodesSlug,
     normalizedCode,
+    pluginConfig,
+    tenantId,
   })
 
   if (!referralData) {
