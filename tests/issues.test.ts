@@ -42,6 +42,19 @@ describe('#13 coupon stays removable after reload', () => {
     expect(payload.update).not.toHaveBeenCalled()
   })
 
+  it('an expired code already on the cart is reported as expired, not applied', async () => {
+    payload.findByID.mockResolvedValue({ id: 'cart-1', subtotal: 100, appliedCoupon: 'c1' })
+    payload.find.mockResolvedValue({ docs: [{ ...coupon, activeUntil: '2000-01-01' }] })
+
+    const resp = await applyCouponHandler({ pluginConfig })({
+      payload,
+      data: { code: 'WELCOME10', cartID: 'cart-1' },
+    } as any)
+
+    expect(resp.status).toBe(400)
+    expect((await resp.json()).error).toBe('Coupon has expired')
+  })
+
   it('a different code is still rejected while one is applied', async () => {
     payload.findByID.mockResolvedValue({ id: 'cart-1', subtotal: 100, appliedCoupon: 'c1' })
     payload.find.mockResolvedValue({ docs: [{ ...coupon, id: 'c2', code: 'OTHER' }] })

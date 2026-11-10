@@ -475,7 +475,11 @@ type CouponPluginOptions = {
 
 With `multiTenant.enabled`, validate/apply only match codes of the request's tenant (apply uses
 the cart's tenant, so switching the tenant cookie cannot redeem another tenant's code). A request
-with no resolvable tenant matches no code. `code` becomes unique per tenant rather than globally,
+with no resolvable tenant matches no code.
+
+The `x-tenant` header and `payload-tenant` cookie are set by the client. If your carts don't
+carry a tenant, pass a `resolveTenant` that derives it from something the shopper can't choose,
+such as the request host, or a shopper can send another tenant's id and redeem its codes. `code` becomes unique per tenant rather than globally,
 so two tenants can both have `WELCOME10`. Enabling it drops the global unique index on `code` /
 `normalizedCode`, so run a migration on SQL databases.
 
