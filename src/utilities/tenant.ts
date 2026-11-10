@@ -95,8 +95,17 @@ export async function assertCodeUniqueInTenant({
   originalDoc?: Record<string, unknown>
 }): Promise<void> {
   if (!pluginConfig.multiTenant.enabled || !data || !req?.payload) return
-  const normalizedCode = data.normalizedCode
-  if (typeof normalizedCode !== 'string' || normalizedCode.length === 0) return
+  // A partial update may change only the tenant, so fall back to the stored code: moving a coupon
+  // into a tenant that already has its code must fail too.
+  const normalizedCode = [
+    data.normalizedCode,
+    data.code,
+    originalDoc?.normalizedCode,
+    originalDoc?.code,
+  ]
+    .map((value) => (typeof value === 'string' ? value.trim().toUpperCase() : ''))
+    .find((value) => value.length > 0)
+  if (!normalizedCode) return
 
   const field = pluginConfig.multiTenant.tenantField
   const tenantId = relationId((field in data ? data[field] : originalDoc?.[field]) as RelationValue)

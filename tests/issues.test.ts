@@ -187,6 +187,26 @@ describe('#20 tenant-scoped code lookup', () => {
     expect(payload.find.mock.calls[0][0].where).toEqual({ normalizedCode: { equals: 'WELCOME10' } })
   })
 
+  it('rejects moving a coupon to a tenant that already has its code', async () => {
+    const collection = createCouponsCollection(pluginConfig)
+    const hook = collection.hooks!.beforeValidate![0] as any
+    const find = jest.fn().mockResolvedValue({ docs: [{ id: 'other' }] })
+
+    // Partial patch: only the tenant changes, so the code comes from the stored document.
+    await expect(
+      hook({
+        data: { tenant: 't-b' },
+        originalDoc: { id: 'c1', code: 'WELCOME10', normalizedCode: 'WELCOME10', tenant: 't-a' },
+        req: { payload: { find } },
+      }),
+    ).rejects.toThrow('already exists for this tenant')
+
+    const { and } = find.mock.calls[0][0].where
+    expect(and).toContainEqual({ normalizedCode: { equals: 'WELCOME10' } })
+    expect(and).toContainEqual({ tenant: { equals: 't-b' } })
+    expect(and).toContainEqual({ id: { not_equals: 'c1' } })
+  })
+
   it('makes coupon codes unique per tenant instead of globally', async () => {
     const collection = createCouponsCollection(pluginConfig)
     const codeField = collection.fields.find((f: any) => f.name === 'code') as any

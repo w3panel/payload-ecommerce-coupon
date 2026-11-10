@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Behaviour change:** `/coupons/apply` returns `404 Cart not found` when the caller is anonymous without a cart `secret`, or cannot read the cart (was: applied the code).
 - **Behaviour change:** setting `appliedCoupon` / `appliedReferralCode` to a new code outside the plugin endpoints is reverted (the field keeps its previous value). Clearing a code still works. Admins (`access.isAdmin` returns `true`) are exempt; trusted server code can set `req.context[ALLOW_CART_CODE_WRITE_CONTEXT_KEY] = true`.
 
+### Fixed
+
+- With `multiTenant.enabled`, moving a coupon or referral code to another tenant (a patch that changes only the tenant) now checks that tenant for the same code. Before, it skipped the check and could create duplicate codes in one tenant.
+
 ### Added
 
 - `ALLOW_CART_CODE_WRITE_CONTEXT_KEY` export for server code that attaches codes to carts directly.
