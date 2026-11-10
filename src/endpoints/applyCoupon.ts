@@ -329,6 +329,8 @@ async function handleCouponCode({
         ],
       },
       limit: 0,
+      // Counts every customer's orders for this coupon, which the shopper cannot read.
+      overrideAccess: true,
     })
 
     if (ordersQuery.totalDocs >= coupon.perCustomerLimit) {
@@ -531,6 +533,8 @@ async function handleReferralCode({
   const program = await payload.findByID({
     collection: pluginConfig.collections.referralProgramsSlug,
     id: programId,
+    // Shoppers cannot read referral programs; this endpoint already decided who may apply codes.
+    overrideAccess: true,
   })
 
   if (!program || !program.isActive) {
