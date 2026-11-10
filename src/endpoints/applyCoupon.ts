@@ -233,8 +233,24 @@ async function handleCouponCode({
     return Response.json({ success: false, error: 'Invalid coupon code' }, { status: 404 })
   }
 
-  // Re-entering the code that is already on the cart (e.g. after a page reload lost the UI
-  // state) succeeds so the storefront can show the code and its Remove button again.
+  const now = new Date()
+  const activeFrom = coupon.activeFrom ? new Date(coupon.activeFrom) : null
+  const activeUntil = coupon.activeUntil ? new Date(coupon.activeUntil) : null
+
+  if (activeFrom && now < activeFrom) {
+    return Response.json({ success: false, error: 'Coupon is not yet active' }, { status: 400 })
+  }
+
+  if (activeUntil && now > activeUntil) {
+    return Response.json({ success: false, error: 'Coupon has expired' }, { status: 400 })
+  }
+
+  if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+    return Response.json({ success: false, error: 'Coupon usage limit exceeded' }, { status: 400 })
+  }
+
+  // Re-entering a still-valid code that is already on the cart (e.g. after a page reload lost
+  // the UI state) succeeds so the storefront can show the code and its Remove button again.
   const existingCouponId = relationId(
     readField(cart, fields.cartAppliedCouponField) as RelationValue,
   )
@@ -251,22 +267,6 @@ async function handleCouponCode({
 
   if (blockedBySingleCodeRule(cart, pluginConfig)) {
     return Response.json({ success: false, error: SINGLE_CODE_ERROR }, { status: 400 })
-  }
-
-  const now = new Date()
-  const activeFrom = coupon.activeFrom ? new Date(coupon.activeFrom) : null
-  const activeUntil = coupon.activeUntil ? new Date(coupon.activeUntil) : null
-
-  if (activeFrom && now < activeFrom) {
-    return Response.json({ success: false, error: 'Coupon is not yet active' }, { status: 400 })
-  }
-
-  if (activeUntil && now > activeUntil) {
-    return Response.json({ success: false, error: 'Coupon has expired' }, { status: 400 })
-  }
-
-  if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
-    return Response.json({ success: false, error: 'Coupon usage limit exceeded' }, { status: 400 })
   }
 
   if (coupon.perCustomerLimit != null && coupon.perCustomerLimit > 0) {
@@ -474,6 +474,21 @@ async function handleReferralCode({
     return Response.json({ success: false, error: 'Invalid referral code' }, { status: 404 })
   }
 
+  if (!referralCode.isActive) {
+    return Response.json({ success: false, error: 'Referral code is not active' }, { status: 400 })
+  }
+
+  if (referralCode.expiresAt && new Date() > new Date(referralCode.expiresAt)) {
+    return Response.json({ success: false, error: 'Referral code has expired' }, { status: 400 })
+  }
+
+  if (referralCode.usageLimit && referralCode.usageCount >= referralCode.usageLimit) {
+    return Response.json(
+      { success: false, error: 'Referral code usage limit exceeded' },
+      { status: 400 },
+    )
+  }
+
   const existingReferralId = relationId(
     readField(cart, fields.cartAppliedReferralCodeField) as RelationValue,
   )
@@ -491,21 +506,6 @@ async function handleReferralCode({
 
   if (blockedBySingleCodeRule(cart, pluginConfig)) {
     return Response.json({ success: false, error: SINGLE_CODE_ERROR }, { status: 400 })
-  }
-
-  if (!referralCode.isActive) {
-    return Response.json({ success: false, error: 'Referral code is not active' }, { status: 400 })
-  }
-
-  if (referralCode.expiresAt && new Date() > new Date(referralCode.expiresAt)) {
-    return Response.json({ success: false, error: 'Referral code has expired' }, { status: 400 })
-  }
-
-  if (referralCode.usageLimit && referralCode.usageCount >= referralCode.usageLimit) {
-    return Response.json(
-      { success: false, error: 'Referral code usage limit exceeded' },
-      { status: 400 },
-    )
   }
 
   const programId =

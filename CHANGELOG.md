@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Re-applying the code already on the cart now returns `200` with `alreadyApplied: true` instead of a `400` error (#13)
 - With `singleCodePerCart`, an unknown code now returns "Invalid code" (404) rather than the one-code-per-order error
+- Re-applying a code that has since expired or hit its usage limit reports that error instead of `alreadyApplied`
 
 ### Fixed
 
