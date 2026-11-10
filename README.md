@@ -190,7 +190,8 @@ This keeps usage and earnings accounting accurate and idempotent for order lifec
 Default paths (customizable via `endpoints` config):
 
 - `POST /api/coupons/validate`
-- `POST /api/coupons/apply`
+- `POST /api/coupons/apply` — re-applying the code already on the cart returns `success: true, alreadyApplied: true`
+- `POST /api/coupons/remove` — body `{ cartID, secret? }`; clears the applied coupon/referral code using the caller's own cart access (owner, or guest with the cart secret)
 - `GET /api/referrals/partner-stats`
 - `POST /api/coupons/record-order-usage` (when enabled)
 
@@ -201,12 +202,14 @@ Default paths (customizable via `endpoints` config):
 ```ts
 import {
   useCouponCode,
+  removeCouponCode,
   validateCouponCode,
   usePartnerStats,
 } from '@wtree/payload-ecommerce-coupon/client'
 ```
 
 - `useCouponCode({ code, cartID, customerEmail? })`
+- `removeCouponCode({ cartID, secret? })` — needs only the cart, so the Remove button keeps working after a reload. To show the code again after a reload, read the cart's `appliedCoupon` (populated with `depth >= 1`) and render the Remove button whenever it is set.
 - `validateCouponCode({ code, cartValue?, cartID?, customerEmail? })`
 - `usePartnerStats()`
 
@@ -457,8 +460,24 @@ type CouponPluginOptions = {
     partnerRoleValues?: string[]
     customRoleResolver?: (user: unknown) => string[]
   }
+
+  // Multi-tenant (e.g. @payloadcms/plugin-multi-tenant)
+  multiTenant?: {
+    enabled?: boolean // default false
+    tenantField?: string // default 'tenant' (on coupons, referral codes and carts)
+    // default: cart[tenantField], then `x-tenant` header, then `payload-tenant` cookie
+    resolveTenant?: (args: { req: unknown; cart?: unknown }) => string | number | null | undefined
+  }
 }
 ```
+
+### Multi-tenant
+
+With `multiTenant.enabled`, validate/apply only match codes of the request's tenant (apply uses
+the cart's tenant, so switching the tenant cookie cannot redeem another tenant's code). A request
+with no resolvable tenant matches no code. `code` becomes unique per tenant rather than globally,
+so two tenants can both have `WELCOME10`. Enabling it drops the global unique index on `code` /
+`normalizedCode`, so run a migration on SQL databases.
 
 ---
 

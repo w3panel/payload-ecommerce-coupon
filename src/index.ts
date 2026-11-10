@@ -3,7 +3,12 @@ import { createReferralCodesCollection } from './collections/createReferralCodes
 import { createReferralProgramsCollection } from './collections/createReferralProgramsCollection'
 import { payloadEcommerceCouponPlugin } from './plugin'
 
-export { useCouponCode, usePartnerStats, validateCouponCode } from './client/hooks'
+export {
+  removeCouponCode,
+  useCouponCode,
+  usePartnerStats,
+  validateCouponCode,
+} from './client/hooks'
 export { PartnerDashboard } from './components/PartnerDashboard'
 export { EarningsSummary } from './components/PartnerDashboard/EarningsSummary'
 export { RecentReferrals } from './components/PartnerDashboard/RecentReferrals'
@@ -33,6 +38,7 @@ export type {
   CouponPluginCollections,
   CouponPluginOptions,
   CouponPluginPolicies,
+  MultiTenantConfig,
   OrderIntegrationConfig,
   PartnerDashboardConfig,
   PartnerDashboardData,
@@ -44,7 +50,10 @@ export type {
   PluginIntegrationResolvers,
   PolicyContext,
   RecordOrderUsagePolicyContext,
+  RemoveCouponHook,
+  RemoveCouponResponse,
   ReferralProgramConfig,
   RoleConfig,
+  TenantResolverArgs,
 } from './types'
 export type { CartLike } from './utilities/getCartTotalWithDiscounts'

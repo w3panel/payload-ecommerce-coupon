@@ -23,6 +23,32 @@ export type CouponPluginEndpoints = {
   validateCoupon?: string
   partnerStats?: string
   recordOrderUsage?: string
+  /** Clears the applied coupon/referral code from a cart. Default `/coupons/remove`. */
+  removeCoupon?: string
+}
+
+export type TenantResolverArgs = {
+  req: unknown
+  /** The cart being changed, when the endpoint has one. */
+  cart?: unknown
+}
+
+/**
+ * Scope coupon and referral code lookups to a tenant (e.g. `@payloadcms/plugin-multi-tenant`).
+ * When enabled, a code only matches documents whose `tenantField` equals the request's tenant,
+ * and `code` is unique per tenant instead of globally.
+ */
+export type MultiTenantConfig = {
+  enabled?: boolean
+  /** Field on coupons, referral codes and carts that holds the tenant. Default `tenant`. */
+  tenantField?: string
+  /**
+   * Resolve the tenant id for a request. Default: the cart's `tenantField`, then the
+   * `x-tenant` header, then the `payload-tenant` cookie.
+   */
+  resolveTenant?: (
+    args: TenantResolverArgs,
+  ) => string | number | null | undefined | Promise<string | number | null | undefined>
 }
 
 export type ReferralProgramConfig = {
@@ -204,6 +230,8 @@ export type CouponPluginOptions = {
   orderIntegration?: OrderIntegrationConfig
   /** Role resolution configuration for access checks and user filtering (legacy-compatible) */
   roleConfig?: RoleConfig
+  /** Tenant scoping for code lookups and per-tenant code uniqueness */
+  multiTenant?: MultiTenantConfig
 }
 
 export type SanitizedCouponPluginOptions = {
@@ -233,6 +261,11 @@ export type SanitizedCouponPluginOptions = {
   adminGroups: Required<AdminGroupConfig>
   partnerDashboard: Required<PartnerDashboardConfig>
   orderIntegration: Required<OrderIntegrationConfig>
+  multiTenant: {
+    enabled: boolean
+    tenantField: string
+    resolveTenant?: MultiTenantConfig['resolveTenant']
+  }
   roleConfig: {
     roleFieldPaths: string[]
     adminRoleValues: string[]
@@ -273,6 +306,20 @@ export type ApplyCouponResponse = {
   referralCode?: {
     code: string
   }
+  /** True when the code was already on the cart (re-applying is a no-op, not an error). */
+  alreadyApplied?: boolean
+  error?: string
+}
+
+export type RemoveCouponHook = {
+  cartID: string | number
+  /** Guest cart secret; required for guest carts. */
+  secret?: string
+}
+
+export type RemoveCouponResponse = {
+  success: boolean
+  message: string
   error?: string
 }
 
