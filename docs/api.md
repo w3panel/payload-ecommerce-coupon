@@ -34,13 +34,13 @@ export default buildConfig({
 
 #### Core Options
 
-| Option                       | Type      | Default | Description                                           |
-| ---------------------------- | --------- | ------- | ----------------------------------------------------- |
-| `enabled`                    | `boolean` | `true`  | Enable/disable the entire plugin                      |
-| `enableReferrals`            | `boolean` | `false` | Enable referral system (creates referral collections) |
+| Option                       | Type      | Default | Description                                                                                   |
+| ---------------------------- | --------- | ------- | --------------------------------------------------------------------------------------------- |
+| `enabled`                    | `boolean` | `true`  | Enable/disable the entire plugin                                                              |
+| `enableReferrals`            | `boolean` | `false` | Enable referral system (creates referral collections)                                         |
 | `allowStackWithOtherCoupons` | `boolean` | `false` | **Deprecated.** Ignored at runtime; use referral/coupon apply rules for single code per cart. |
-| `defaultCurrency`            | `string`  | `'USD'` | Default currency code                                 |
-| `autoIntegrate`              | `boolean` | `true`  | Auto-add fields to carts/orders collections           |
+| `defaultCurrency`            | `string`  | `'USD'` | Default currency code                                                                         |
+| `autoIntegrate`              | `boolean` | `true`  | Auto-add fields to carts/orders collections                                                   |
 
 #### Collections Configuration
 

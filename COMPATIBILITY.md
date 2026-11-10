@@ -2,10 +2,10 @@
 
 ## Payload CMS Compatibility
 
-| Package                      | Version              | Status       |
-| ---------------------------- | -------------------- | ------------ |
-| payload                      | >=4.0.0-beta.4 <5    | ✅ Supported |
-| @payloadcms/plugin-ecommerce | >=4.0.0-beta.4 <5    | ✅ Required  |
+| Package                      | Version           | Status       |
+| ---------------------------- | ----------------- | ------------ |
+| payload                      | >=4.0.0-beta.7 <5 | ✅ Supported |
+| @payloadcms/plugin-ecommerce | >=4.0.0-beta.7 <5 | ✅ Required  |
 
 > Payload 3 consumers should stay on `@wtree/payload-ecommerce-coupon@3` (`latest` dist-tag).
 

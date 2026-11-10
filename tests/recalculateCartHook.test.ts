@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from 'bun:test'
 import { recalculateCartHook } from '../src/hooks/recalculateCart'
 import {
+  ALLOW_CART_CODE_WRITE_CONTEXT_KEY,
   type SkipRecalculateContext,
   SKIP_COUPON_RECALCULATE_CONTEXT_KEY,
 } from '../src/utilities/applyCouponContext'
@@ -128,7 +129,11 @@ describe('recalculateCartHook Integration', () => {
   }
 
   const mockPayload = { find: jest.fn() }
-  const mockReq: any = { payload: mockPayload }
+  // These cases write codes straight onto the cart, which only trusted callers may do.
+  const mockReq: any = {
+    payload: mockPayload,
+    context: { [ALLOW_CART_CODE_WRITE_CONTEXT_KEY]: true },
+  }
 
   beforeEach(() => {
     jest.clearAllMocks()

@@ -9,10 +9,12 @@ import { logCouponCartDebug, logRecalculateCartCouponSnapshot } from '../utiliti
 import { majorToMinor2dp, minorToMajor2dp } from '../utilities/ecommerceMoney'
 import { roundTo2 } from '../utilities/roundTo2'
 import {
+  ALLOW_CART_CODE_WRITE_CONTEXT_KEY,
   type SkipRecalculateContext,
   SKIP_COUPON_RECALCULATE_CONTEXT_KEY,
 } from '../utilities/applyCouponContext'
-import { type RelationValue, relationId } from '../utilities/relationId'
+import { idsEqual, type RelationValue, relationId } from '../utilities/relationId'
+import { resolveTenantId, type TenantId } from '../utilities/tenant'
 
 function readField<T = unknown>(doc: unknown, field: string): T | undefined {
   if (!doc || typeof doc !== 'object') return undefined
@@ -59,6 +61,71 @@ function clearReferralFields(
   writeField(target, fields.cartAppliedReferralCodeField, null)
   writeField(target, fields.cartPartnerCommissionField, 0)
   writeField(target, fields.cartCustomerDiscountField, 0)
+}
+
+/**
+ * Reverts a write that puts a different code on the cart than it already has. Codes may only be
+ * attached through the plugin endpoints, which check tenant, min-order and per-customer limits.
+ * Clearing the field (`null` or `''`) is left alone so removing a code keeps working.
+ */
+function revertUnauthorizedCodeWrite(
+  mutableData: Record<string, unknown>,
+  original: Record<string, unknown>,
+  fieldName: string,
+): boolean {
+  if (!Object.prototype.hasOwnProperty.call(mutableData, fieldName)) return false
+  const incomingId = relationId(mutableData[fieldName] as RelationValue)
+  if (incomingId == null) return false
+  if (incomingId === '') {
+    // An empty string is a clear, the same as null.
+    mutableData[fieldName] = null
+    return false
+  }
+  if (idsEqual(incomingId, relationId(original[fieldName] as RelationValue))) return false
+
+  if (Object.prototype.hasOwnProperty.call(original, fieldName)) {
+    mutableData[fieldName] = original[fieldName] ?? null
+  } else {
+    delete mutableData[fieldName]
+  }
+  return true
+}
+
+async function mayWriteCodesDirectly(
+  pluginConfig: SanitizedCouponPluginOptions,
+  req: any,
+): Promise<boolean> {
+  if (req?.context?.[ALLOW_CART_CODE_WRITE_CONTEXT_KEY] === true) return true
+  const isAdmin = pluginConfig.access?.isAdmin
+  if (typeof isAdmin !== 'function') return false
+  try {
+    return (await isAdmin({ req } as any)) === true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * True when tenant scoping is on and `doc` belongs to a different tenant than the cart's.
+ *
+ * An unresolved tenant is not a mismatch: this hook runs on every cart write, including ones with
+ * no tenant cookie or header (server-side cart calls, payment webhooks, jobs). Treating those as
+ * another tenant would silently drop a valid code. Codes can only be attached through the apply
+ * endpoint, which already enforces the tenant.
+ */
+function isOtherTenant(
+  pluginConfig: SanitizedCouponPluginOptions,
+  tenantId: TenantId | null,
+  doc: unknown,
+): boolean {
+  if (!pluginConfig.multiTenant?.enabled) return false
+  if (tenantId == null) return false
+  const docTenant = relationId(
+    (doc as Record<string, unknown> | undefined)?.[pluginConfig.multiTenant.tenantField] as
+      | RelationValue
+      | undefined,
+  )
+  return !idsEqual(docTenant, tenantId)
 }
 
 export const recalculateCartHook =
@@ -174,6 +241,25 @@ export const recalculateCartHook =
     const mutableData = (data || {}) as Record<string, unknown>
     const original = (originalDoc || {}) as Record<string, unknown>
 
+    if (!(await mayWriteCodesDirectly(pluginConfig, req))) {
+      for (const fieldName of [
+        fields.cartAppliedCouponField,
+        fields.cartAppliedReferralCodeField,
+      ]) {
+        if (revertUnauthorizedCodeWrite(mutableData, original, fieldName)) {
+          logCouponCartDebug(
+            'recalculateCart: reverted direct code write (use the apply endpoint)',
+            { fieldName },
+            req as any,
+          )
+        }
+      }
+    }
+
+    const tenantId = pluginConfig.multiTenant?.enabled
+      ? await resolveTenantId({ pluginConfig, req, cart: { ...original, ...mutableData } })
+      : null
+
     const rawCurrency =
       readField<string>(mutableData, 'currency') ?? readField<string>(original, 'currency')
     const cartCurrency =
@@ -285,7 +371,11 @@ export const recalculateCartHook =
       })
 
       const referralCode = referralQuery?.docs?.[0]
-      if (!referralCode || referralCode.isActive === false) {
+      if (
+        !referralCode ||
+        referralCode.isActive === false ||
+        isOtherTenant(pluginConfig, tenantId, referralCode)
+      ) {
         clearReferralFields(mutableData, fields)
       } else {
         const programId = relationId(referralCode.program as RelationValue)
@@ -363,10 +453,10 @@ export const recalculateCartHook =
       })
 
       const coupon = couponQuery?.docs?.[0]
-      if (!coupon) {
+      if (!coupon || isOtherTenant(pluginConfig, tenantId, coupon)) {
         clearCouponFields(mutableData, fields)
         logCouponCartDebug(
-          'recalculateCart: cleared coupon (document not found)',
+          'recalculateCart: cleared coupon (not found or another tenant)',
           { appliedCouponID },
           req as any,
         )

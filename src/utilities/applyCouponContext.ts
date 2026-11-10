@@ -26,3 +26,12 @@ export const SKIP_COUPON_RECALCULATE_CONTEXT_KEY =
  */
 export const PENDING_APPLIED_COUPON_ID_CONTEXT_KEY =
   '__payloadEcommerceCouponPendingAppliedCouponId' as const
+
+/**
+ * `appliedCoupon` / `appliedReferralCode` are only writable through the plugin's endpoints
+ * (which run the tenant, min-order and per-customer checks). Other writes that set a new code,
+ * such as `PATCH /api/carts/:id`, are reverted by `recalculateCart`. Admins (`access.isAdmin`)
+ * are exempt; trusted server code can set this key to `true` on `req.context` to attach a code.
+ * Clearing a code (`null`) is always allowed.
+ */
+export const ALLOW_CART_CODE_WRITE_CONTEXT_KEY = '__payloadEcommerceCouponAllowCodeWrite' as const
