@@ -21,6 +21,7 @@ export {
   calculateCommissionAndDiscount,
   getProgramMinimumOrderAmount,
 } from './utilities/calculateValues'
+export { ALLOW_CART_CODE_WRITE_CONTEXT_KEY } from './utilities/applyCouponContext'
 export { getCartTotalWithDiscounts } from './utilities/getCartTotalWithDiscounts'
 export { recordCouponUsageForOrder } from './utilities/recordCouponUsageForOrder'
 export {

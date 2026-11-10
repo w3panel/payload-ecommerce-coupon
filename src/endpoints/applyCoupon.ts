@@ -41,6 +41,9 @@ type Args = {
   pluginConfig: SanitizedCouponPluginOptions
 }
 
+const CART_NOT_FOUND = () =>
+  Response.json({ success: false, error: 'Cart not found' }, { status: 404 })
+
 function buildReqWithCartSecret(req: PayloadRequest, secret: string | undefined): PayloadRequest {
   if (!secret || typeof secret !== 'string' || secret.trim().length === 0) return req
   return {
@@ -127,19 +130,25 @@ export const applyCouponHandler =
       return Response.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
+    // Only the cart's owner, or a guest holding its secret, may change it. Without this anyone
+    // with a (sequential) cart ID could attach codes to someone else's cart or read its discount.
+    if (!req.user && !cartSecret) return CART_NOT_FOUND()
+
+    let cart: any
     try {
-      const cart = await payload.findByID({
+      cart = await payload.findByID({
         collection: collections.cartsSlug,
         id: cartID,
         depth: 2,
-        overrideAccess: true,
+        overrideAccess: false,
         req: reqForCart,
       })
+    } catch {
+      return CART_NOT_FOUND()
+    }
+    if (!cart) return CART_NOT_FOUND()
 
-      if (!cart) {
-        return Response.json({ success: false, error: 'Cart not found' }, { status: 404 })
-      }
-
+    try {
       // The cart's tenant, not the request's, decides which codes may be applied to it.
       const tenantId = await resolveTenantId({ pluginConfig, req, cart })
 
@@ -383,7 +392,7 @@ async function handleCouponCode({
     collection: pluginConfig.integration.collections.cartsSlug,
     id: cartID,
     data,
-    overrideAccess: true,
+    overrideAccess: false,
     req: reqForCart,
   })
 
@@ -393,7 +402,7 @@ async function handleCouponCode({
         collection: pluginConfig.integration.collections.cartsSlug,
         id: cartID,
         depth: 0,
-        overrideAccess: true,
+        overrideAccess: false,
         req: reqForCart,
       })
       // eslint-disable-next-line no-console -- DEBUG_COUPON_CART diagnostic
@@ -581,7 +590,7 @@ async function handleReferralCode({
     collection: pluginConfig.integration.collections.cartsSlug,
     id: cartID,
     data,
-    overrideAccess: true,
+    overrideAccess: false,
     req: reqForCart,
   })
 
