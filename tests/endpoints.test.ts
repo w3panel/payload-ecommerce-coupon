@@ -57,6 +57,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         json: async () => ({ code: 'TEST10', cartID: 'cart-123' }),
       }
 
@@ -78,6 +79,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { cartID: 'cart-123' },
       }
 
@@ -93,6 +95,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -108,6 +111,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: {},
       }
 
@@ -124,6 +128,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { cartID: 'cart-123' },
       }
 
@@ -161,6 +166,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -187,6 +193,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'INVALID', cartID: 'cart-123' },
       }
 
@@ -220,6 +227,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -248,6 +256,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -277,6 +286,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -335,6 +345,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -399,6 +410,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'FIXED1', cartID: 'cart-456' },
       }
 
@@ -428,6 +440,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'INVALID', cartID: 'cart-123' },
       }
 
@@ -461,6 +474,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -513,6 +527,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -568,6 +583,7 @@ describe('Apply Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -586,6 +602,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -601,6 +618,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: null,
       }
 
@@ -619,6 +637,7 @@ describe('Apply Coupon Endpoint', () => {
       const handler = applyCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10', cartID: 'cart-123' },
       }
 
@@ -677,6 +696,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         json: async () => ({ code: 'TEST10', cartValue: 1000 }),
       }
 
@@ -693,6 +713,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: {},
       }
 
@@ -721,6 +742,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -751,6 +773,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -773,6 +796,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'INVALID' },
       }
 
@@ -800,6 +824,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -828,6 +853,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -857,6 +883,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -884,6 +911,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'PRECISION', cartValue: 19.99 },
       }
 
@@ -928,6 +956,7 @@ describe('Validate Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123' },
       }
 
@@ -950,6 +979,7 @@ describe('Validate Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'INVALID' },
       }
 
@@ -1004,6 +1034,7 @@ describe('Validate Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -1057,6 +1088,7 @@ describe('Validate Coupon Endpoint', () => {
       })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'REF123', cartID: 'cart-123' },
       }
 
@@ -1075,6 +1107,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: { code: 'TEST10' },
       }
 
@@ -1090,6 +1123,7 @@ describe('Validate Coupon Endpoint', () => {
       const handler = validateCouponHandler({ pluginConfig })
       const req = {
         payload: mockPayload,
+        user: { id: 'u1' },
         data: null,
       }
 
@@ -1173,10 +1207,12 @@ describe('Referral v2 Consistency', () => {
 
     const applyResp = await apply({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REF123', cartID: 'cart-1' },
     } as any)
     const validateResp = await validate({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REF123', cartID: 'cart-1' },
     } as any)
 
@@ -1213,6 +1249,7 @@ describe('Referral v2 Consistency', () => {
     const apply = applyCouponHandler({ pluginConfig: referralPluginConfig })
     const resp = await apply({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: ' REF123 ', cartID: 'cart-1' },
     } as any)
     const result = await resp.json()
@@ -1257,6 +1294,7 @@ describe('Referral v2 Consistency', () => {
     })
     const resp = await apply({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REF123', cartID: 'cart-1' },
     } as any)
     const result = await resp.json()
@@ -1321,7 +1359,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     jest.clearAllMocks()
   })
 
-  it('apply coupon: findByID and update use overrideAccess and forward trimmed cart secret on req', async () => {
+  it('apply coupon: findByID and update use the guest cart access (overrideAccess false) and forward trimmed cart secret on req', async () => {
     const mockCoupon = {
       id: 'c-secret',
       code: 'SAVE5',
@@ -1345,7 +1383,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
 
     expect(mockPayload.findByID).toHaveBeenCalledWith(
       expect.objectContaining({
-        overrideAccess: true,
+        overrideAccess: false,
         req: expect.objectContaining({
           context: expect.objectContaining({ cartSecret: 'guest-secret-xyz' }),
         }),
@@ -1353,7 +1391,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     )
     expect(mockPayload.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        overrideAccess: true,
+        overrideAccess: false,
         req: expect.objectContaining({
           context: expect.objectContaining({ cartSecret: 'guest-secret-xyz' }),
         }),
@@ -1389,6 +1427,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: couponPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'MIN100', cartID: 'cart-1' },
     } as any)
     const result = await response.json()
@@ -1420,6 +1459,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: couponPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'MIN100B', cartID: 'cart-2' },
     } as any)
     const result = await response.json()
@@ -1449,6 +1489,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: couponPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'MAX150', cartID: 'cart-3' },
     } as any)
     const result = await response.json()
@@ -1478,6 +1519,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: couponPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'PCT10', cartID: 'cart-4' },
     } as any)
     const result = await response.json()
@@ -1509,6 +1551,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: couponPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'FIX50', cartID: 'cart-5' },
     } as any)
     const result = await response.json()
@@ -1558,6 +1601,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFSUB1', cartID: 'cart-sub-1' },
     } as any)
     const result = await response.json()
@@ -1607,6 +1651,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFSUB2', cartID: 'cart-sub-2' },
     } as any)
     const result = await response.json()
@@ -1656,6 +1701,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = applyCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFSUB3', cartID: 'cart-sub-3' },
     } as any)
     const result = await response.json()
@@ -1705,6 +1751,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = validateCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFVAL1', cartID: 'cart-val-1' },
     } as any)
     const result = await response.json()
@@ -1752,6 +1799,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = validateCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFVAL2', cartID: 'cart-val-2' },
     } as any)
     const result = await response.json()
@@ -1798,6 +1846,7 @@ describe('cartSubtotal Baseline Enforcement', () => {
     const handler = validateCouponHandler({ pluginConfig: referralPluginConfig })
     const response = await handler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFVAL3', cartID: 'cart-val-3' },
     } as any)
     const result = await response.json()
@@ -1858,10 +1907,12 @@ describe('cartSubtotal Baseline Enforcement', () => {
 
     const applyResp = await applyHandler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFCONS1', cartID: 'cart-cons-1' },
     } as any)
     const validateResp = await validateHandler({
       payload: mockPayload,
+      user: { id: 'u1' },
       data: { code: 'REFCONS1', cartID: 'cart-cons-1' },
     } as any)
 

@@ -32,6 +32,7 @@ describe('#13 coupon stays removable after reload', () => {
 
     const resp = await applyCouponHandler({ pluginConfig })({
       payload,
+      user: { id: 'u1' },
       data: { code: 'welcome10', cartID: 'cart-1' },
     } as any)
     const body = await resp.json()
@@ -48,6 +49,7 @@ describe('#13 coupon stays removable after reload', () => {
 
     const resp = await applyCouponHandler({ pluginConfig })({
       payload,
+      user: { id: 'u1' },
       data: { code: 'WELCOME10', cartID: 'cart-1' },
     } as any)
 
@@ -61,6 +63,7 @@ describe('#13 coupon stays removable after reload', () => {
 
     const resp = await applyCouponHandler({ pluginConfig })({
       payload,
+      user: { id: 'u1' },
       data: { code: 'OTHER', cartID: 'cart-1' },
     } as any)
 
@@ -120,6 +123,7 @@ describe('#20 tenant-scoped code lookup', () => {
 
     const resp = await applyCouponHandler({ pluginConfig })({
       payload,
+      user: { id: 'u1' },
       headers: new Headers({ cookie: 'payload-tenant=t-a' }),
       data: { code: 'WELCOME10', cartID: 'cart-1' },
     } as any)

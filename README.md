@@ -190,9 +190,12 @@ This keeps usage and earnings accounting accurate and idempotent for order lifec
 Default paths (customizable via `endpoints` config):
 
 - `POST /api/coupons/validate`
-- `POST /api/coupons/apply` — re-applying the code already on the cart returns `success: true, alreadyApplied: true`
+- `POST /api/coupons/apply` — body `{ code, cartID, secret?, customerEmail? }`; uses the caller's own cart access (owner, or guest with the cart secret) and returns `404` for a cart the caller cannot read. Re-applying the code already on the cart returns `success: true, alreadyApplied: true`
 - `POST /api/coupons/remove` — body `{ cartID, secret? }`; clears the applied coupon/referral code using the caller's own cart access (owner, or guest with the cart secret)
 - `GET /api/referrals/partner-stats`
+
+The cart's `appliedCoupon` / `appliedReferralCode` can only be set through these endpoints. Any other write that puts a new code on a cart (for example `PATCH /api/carts/:id`) is reverted by the cart hook; clearing a code is always allowed. Users for whom `access.isAdmin` returns `true` are exempt, and trusted server code can opt in with `req.context[ALLOW_CART_CODE_WRITE_CONTEXT_KEY] = true` (exported from the package). With `multiTenant.enabled`, the hook also drops a code whose tenant differs from the cart's.
+
 - `POST /api/coupons/record-order-usage` (when enabled)
 
 ---
