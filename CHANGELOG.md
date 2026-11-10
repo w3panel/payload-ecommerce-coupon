@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - With `multiTenant.enabled`, moving a coupon or referral code to another tenant (a patch that changes only the tenant) now checks that tenant for the same code. Before, it skipped the check and could create duplicate codes in one tenant.
+- With `multiTenant.enabled`, a cart write whose tenant cannot be resolved (no cart tenant field and no tenant cookie/header, e.g. a payment webhook or server-side cart call) no longer drops the applied code.
+- Clearing `appliedCoupon` / `appliedReferralCode` with an empty string is treated like `null` instead of being reverted.
 
 ### Added
 

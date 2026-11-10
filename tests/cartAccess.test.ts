@@ -140,6 +140,19 @@ describe('recalculateCart only accepts codes from the plugin endpoints', () => {
     expect(result.total).toBe(100)
   })
 
+  it('treats an empty string as clearing the code', async () => {
+    const hook = recalculateCartHook(pluginConfig)
+    const result: any = await hook({
+      data: { items, appliedCoupon: '' },
+      originalDoc: { id: 1, items, appliedCoupon: 'c1', discountAmount: 10 },
+      req: makeReq(),
+    } as any)
+
+    expect(result.appliedCoupon).toBeNull()
+    expect(result.discountAmount).toBe(0)
+    expect(result.total).toBe(100)
+  })
+
   it('keeps a write that repeats the code already on the cart (populated relation)', async () => {
     const hook = recalculateCartHook(pluginConfig)
     const result: any = await hook({
@@ -252,5 +265,19 @@ describe('recalculateCart checks the code tenant', () => {
 
     expect(result.appliedReferralCode).toBeNull()
     expect(result.customerDiscount).toBe(0)
+  })
+
+  it('keeps the code on a cart write with no resolvable tenant (webhook, job, server call)', async () => {
+    const hook = recalculateCartHook(pluginConfig)
+    const result: any = await hook({
+      // Cart has no tenant field and the request carries no tenant cookie or header.
+      data: { purchasedAt: '2026-11-10' },
+      originalDoc: { id: 1, items, appliedCoupon: 'c1', discountAmount: 10 },
+      req: makeReq({ coupons: { ...coupon, tenant: 't-a' } }),
+    } as any)
+
+    expect(result.appliedCoupon ?? 'c1').toBe('c1')
+    expect(result.discountAmount).toBe(10)
+    expect(result.total).toBe(90)
   })
 })

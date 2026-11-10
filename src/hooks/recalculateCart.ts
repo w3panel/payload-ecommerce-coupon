@@ -66,7 +66,7 @@ function clearReferralFields(
 /**
  * Reverts a write that puts a different code on the cart than it already has. Codes may only be
  * attached through the plugin endpoints, which check tenant, min-order and per-customer limits.
- * Clearing the field (`null`) is left alone so removing a code keeps working.
+ * Clearing the field (`null` or `''`) is left alone so removing a code keeps working.
  */
 function revertUnauthorizedCodeWrite(
   mutableData: Record<string, unknown>,
@@ -76,6 +76,11 @@ function revertUnauthorizedCodeWrite(
   if (!Object.prototype.hasOwnProperty.call(mutableData, fieldName)) return false
   const incomingId = relationId(mutableData[fieldName] as RelationValue)
   if (incomingId == null) return false
+  if (incomingId === '') {
+    // An empty string is a clear, the same as null.
+    mutableData[fieldName] = null
+    return false
+  }
   if (idsEqual(incomingId, relationId(original[fieldName] as RelationValue))) return false
 
   if (Object.prototype.hasOwnProperty.call(original, fieldName)) {
@@ -100,14 +105,21 @@ async function mayWriteCodesDirectly(
   }
 }
 
-/** True when tenant scoping is on and `doc` does not belong to the cart's tenant. */
+/**
+ * True when tenant scoping is on and `doc` belongs to a different tenant than the cart's.
+ *
+ * An unresolved tenant is not a mismatch: this hook runs on every cart write, including ones with
+ * no tenant cookie or header (server-side cart calls, payment webhooks, jobs). Treating those as
+ * another tenant would silently drop a valid code. Codes can only be attached through the apply
+ * endpoint, which already enforces the tenant.
+ */
 function isOtherTenant(
   pluginConfig: SanitizedCouponPluginOptions,
   tenantId: TenantId | null,
   doc: unknown,
 ): boolean {
   if (!pluginConfig.multiTenant?.enabled) return false
-  if (tenantId == null) return true
+  if (tenantId == null) return false
   const docTenant = relationId(
     (doc as Record<string, unknown> | undefined)?.[pluginConfig.multiTenant.tenantField] as
       | RelationValue
