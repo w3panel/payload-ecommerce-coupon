@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import type { SanitizedCouponPluginOptions } from '../types'
+import { assertCodeUniqueInTenant } from '../utilities/tenant'
 import { buildPartnerUserFilterWhere, isAdminUser, isPartnerUser } from '../utilities/userRoles'
 
 const normalizeCode = (value: unknown): string =>
@@ -106,7 +107,8 @@ export const createReferralCodesCollection = (
         name: 'code',
         type: 'text',
         required: true,
-        unique: true,
+        unique: !pluginConfig.multiTenant.enabled,
+        index: pluginConfig.multiTenant.enabled,
         admin: {
           description: 'The referral code that customers will enter',
         },
@@ -115,7 +117,7 @@ export const createReferralCodesCollection = (
         name: 'normalizedCode',
         type: 'text',
         required: true,
-        unique: true,
+        unique: !pluginConfig.multiTenant.enabled,
         index: true,
         admin: {
           readOnly: true,
@@ -231,9 +233,16 @@ export const createReferralCodesCollection = (
 
     hooks: {
       beforeValidate: [
-        ({ data }) => {
+        async ({ data, req, originalDoc }) => {
           if (!data) return data
           data.normalizedCode = normalizeCode(data.code)
+          await assertCodeUniqueInTenant({
+            pluginConfig,
+            req,
+            collection: collections.referralCodesSlug,
+            data,
+            originalDoc,
+          })
           return data
         },
       ],

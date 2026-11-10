@@ -1,12 +1,15 @@
 import { APIError, type CollectionConfig } from 'payload'
 
 import type { SanitizedCouponPluginOptions } from '../types'
+import { assertCodeUniqueInTenant } from '../utilities/tenant'
 
 export const createCouponsCollection = (
   pluginConfig: SanitizedCouponPluginOptions,
 ): CollectionConfig => {
   const { collections, access, defaultCurrency, adminGroups, integration } = pluginConfig
   const usersSlug = integration.collections.usersSlug
+  // Multi-tenant: codes are unique per tenant (checked in beforeValidate), not globally.
+  const globallyUnique = !pluginConfig.multiTenant.enabled
 
   return {
     slug: collections.couponsSlug,
@@ -26,7 +29,8 @@ export const createCouponsCollection = (
         name: 'code',
         type: 'text',
         required: true,
-        unique: true,
+        unique: globallyUnique,
+        index: !globallyUnique,
         admin: {
           description: 'The coupon code that customers will enter',
         },
@@ -34,7 +38,7 @@ export const createCouponsCollection = (
       {
         name: 'normalizedCode',
         type: 'text',
-        unique: true,
+        unique: globallyUnique,
         index: true,
         admin: {
           hidden: true,
@@ -142,7 +146,7 @@ export const createCouponsCollection = (
     ],
     hooks: {
       beforeValidate: [
-        ({ data }) => {
+        async ({ data, req, originalDoc }) => {
           if (data && typeof data.code === 'string') {
             data.code = data.code.trim()
             data.normalizedCode = data.code.toUpperCase()
@@ -155,6 +159,13 @@ export const createCouponsCollection = (
           if (data?.type === 'fixed' && typeof data.value === 'number' && data.value < 0) {
             throw new APIError('Fixed coupon value must be non-negative', 400)
           }
+          await assertCodeUniqueInTenant({
+            pluginConfig,
+            req,
+            collection: collections.couponsSlug,
+            data,
+            originalDoc,
+          })
           return data
         },
       ],

@@ -17,7 +17,25 @@ import {
   SKIP_COUPON_RECALCULATE_CONTEXT_KEY,
 } from '../utilities/applyCouponContext'
 import { idsEqual, type RelationValue, relationId } from '../utilities/relationId'
+import { findByNormalizedCode } from '../utilities/findByNormalizedCode'
 import { roundTo2 } from '../utilities/roundTo2'
+import { resolveTenantId, type TenantId } from '../utilities/tenant'
+
+const SINGLE_CODE_ERROR =
+  'A code has already been applied to this cart. Only one code can be used per order.'
+
+/** Another code is on the cart and the plugin allows only one per order. */
+function blockedBySingleCodeRule(
+  cart: unknown,
+  pluginConfig: SanitizedCouponPluginOptions,
+): boolean {
+  if (!pluginConfig.referralConfig.singleCodePerCart) return false
+  const fields = pluginConfig.integration.fields
+  return (
+    relationId(readField(cart, fields.cartAppliedCouponField) as RelationValue) != null ||
+    relationId(readField(cart, fields.cartAppliedReferralCodeField) as RelationValue) != null
+  )
+}
 
 type Args = {
   pluginConfig: SanitizedCouponPluginOptions
@@ -69,67 +87,10 @@ async function ensureRequestData(req: any): Promise<Record<string, unknown>> {
   return req.data
 }
 
-async function findByNormalizedCode({
-  payload,
-  collection,
-  normalizedCode,
-}: {
-  payload: any
-  collection: string
-  normalizedCode: string
-}): Promise<any | null> {
-  const exactQuery = await payload.find({
-    collection,
-    where: {
-      normalizedCode: { equals: normalizedCode },
-    },
-    limit: 1,
-    // Lookup only: the endpoint checks who may apply a code. Shoppers cannot read these
-    // collections, so without this every code (valid or not) threw Forbidden -> 500.
-    overrideAccess: true,
-  })
-
-  if (exactQuery?.docs?.[0]) return exactQuery.docs[0]
-
-  const lowerQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode.toLowerCase() },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  if (lowerQuery?.docs?.[0]) return lowerQuery.docs[0]
-
-  const upperQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode.toUpperCase() },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  if (upperQuery?.docs?.[0]) return upperQuery.docs[0]
-
-  const exactCodeQuery = await payload.find({
-    collection,
-    where: {
-      code: { equals: normalizedCode },
-    },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  return exactCodeQuery?.docs?.[0] ?? null
-}
-
 export const applyCouponHandler =
   ({ pluginConfig }: Args): PayloadHandler =>
   async (req) => {
     const { payload } = req
-    const fields = pluginConfig.integration.fields
     const collections = pluginConfig.integration.collections
     const data = await ensureRequestData(req)
 
@@ -179,26 +140,8 @@ export const applyCouponHandler =
         return Response.json({ success: false, error: 'Cart not found' }, { status: 404 })
       }
 
-      const cartAppliedCoupon = relationId(
-        readField(cart, fields.cartAppliedCouponField) as RelationValue,
-      )
-      const cartAppliedReferral = relationId(
-        readField(cart, fields.cartAppliedReferralCodeField) as RelationValue,
-      )
-
-      if (
-        pluginConfig.referralConfig.singleCodePerCart &&
-        (cartAppliedCoupon || cartAppliedReferral)
-      ) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              'A code has already been applied to this cart. Only one code can be used per order.',
-          },
-          { status: 400 },
-        )
-      }
+      // The cart's tenant, not the request's, decides which codes may be applied to it.
+      const tenantId = await resolveTenantId({ pluginConfig, req, cart })
 
       if (pluginConfig.enableReferrals && allowReferral) {
         const referralResult = await handleReferralCode({
@@ -208,6 +151,7 @@ export const applyCouponHandler =
           normalizedCode,
           pluginConfig,
           reqForCart,
+          tenantId,
         })
 
         if (
@@ -225,6 +169,7 @@ export const applyCouponHandler =
             pluginConfig,
             req,
             reqForCart,
+            tenantId,
           })
         }
 
@@ -244,6 +189,7 @@ export const applyCouponHandler =
         pluginConfig,
         req,
         reqForCart,
+        tenantId,
       })
     } catch (error) {
       console.error('Code application error:', error)
@@ -260,6 +206,7 @@ async function handleCouponCode({
   pluginConfig,
   req,
   reqForCart,
+  tenantId,
 }: {
   payload: any
   cart: any
@@ -269,6 +216,7 @@ async function handleCouponCode({
   pluginConfig: SanitizedCouponPluginOptions
   req: PayloadRequest
   reqForCart: PayloadRequest
+  tenantId: TenantId | null
 }) {
   const fields = pluginConfig.integration.fields
   const resolvers = pluginConfig.integration.resolvers
@@ -277,10 +225,32 @@ async function handleCouponCode({
     payload,
     collection: pluginConfig.collections.couponsSlug,
     normalizedCode,
+    pluginConfig,
+    tenantId,
   })
 
   if (!coupon) {
     return Response.json({ success: false, error: 'Invalid coupon code' }, { status: 404 })
+  }
+
+  // Re-entering the code that is already on the cart (e.g. after a page reload lost the UI
+  // state) succeeds so the storefront can show the code and its Remove button again.
+  const existingCouponId = relationId(
+    readField(cart, fields.cartAppliedCouponField) as RelationValue,
+  )
+  if (idsEqual(existingCouponId, coupon.id)) {
+    return Response.json({
+      success: true,
+      alreadyApplied: true,
+      message: 'Coupon already applied to this cart',
+      coupon: { code: coupon.code, type: coupon.type, value: coupon.value },
+      discount: Number(readField(cart, fields.cartDiscountAmountField)) || 0,
+      currency: pluginConfig.defaultCurrency,
+    })
+  }
+
+  if (blockedBySingleCodeRule(cart, pluginConfig)) {
+    return Response.json({ success: false, error: SINGLE_CODE_ERROR }, { status: 400 })
   }
 
   const now = new Date()
@@ -342,16 +312,6 @@ async function handleCouponCode({
         { status: 400 },
       )
     }
-  }
-
-  const existingCouponId = relationId(
-    readField(cart, fields.cartAppliedCouponField) as RelationValue,
-  )
-  if (idsEqual(existingCouponId, coupon.id)) {
-    return Response.json(
-      { success: false, error: 'Coupon already applied to this cart' },
-      { status: 400 },
-    )
   }
 
   const referralOnCart =
@@ -488,6 +448,7 @@ async function handleReferralCode({
   normalizedCode,
   pluginConfig,
   reqForCart,
+  tenantId,
 }: {
   payload: any
   cart: any
@@ -495,6 +456,7 @@ async function handleReferralCode({
   normalizedCode: string
   pluginConfig: SanitizedCouponPluginOptions
   reqForCart: PayloadRequest
+  tenantId: TenantId | null
 }) {
   const fields = pluginConfig.integration.fields
   const resolvers = pluginConfig.integration.resolvers
@@ -504,10 +466,31 @@ async function handleReferralCode({
     payload,
     collection: pluginConfig.collections.referralCodesSlug,
     normalizedCode,
+    pluginConfig,
+    tenantId,
   })
 
   if (!referralCode) {
     return Response.json({ success: false, error: 'Invalid referral code' }, { status: 404 })
+  }
+
+  const existingReferralId = relationId(
+    readField(cart, fields.cartAppliedReferralCodeField) as RelationValue,
+  )
+  if (idsEqual(existingReferralId, referralCode.id)) {
+    return Response.json({
+      success: true,
+      alreadyApplied: true,
+      message: 'Referral code already applied to this cart',
+      referralCode: { code: referralCode.code },
+      partnerCommission: Number(readField(cart, fields.cartPartnerCommissionField)) || 0,
+      customerDiscount: Number(readField(cart, fields.cartCustomerDiscountField)) || 0,
+      currency: pluginConfig.defaultCurrency,
+    })
+  }
+
+  if (blockedBySingleCodeRule(cart, pluginConfig)) {
+    return Response.json({ success: false, error: SINGLE_CODE_ERROR }, { status: 400 })
   }
 
   if (!referralCode.isActive) {
@@ -540,17 +523,6 @@ async function handleReferralCode({
   if (!program || !program.isActive) {
     return Response.json(
       { success: false, error: 'Referral program is not active' },
-      { status: 400 },
-    )
-  }
-
-  const existingReferralId = relationId(
-    readField(cart, fields.cartAppliedReferralCodeField) as RelationValue,
-  )
-
-  if (idsEqual(existingReferralId, referralCode.id)) {
-    return Response.json(
-      { success: false, error: 'Referral code already applied to this cart' },
       { status: 400 },
     )
   }

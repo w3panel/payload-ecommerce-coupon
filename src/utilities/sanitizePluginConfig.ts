@@ -254,6 +254,11 @@ export const sanitizePluginConfig = ({
         pluginConfig.endpoints.recordOrderUsage.trim().length > 0
           ? pluginConfig.endpoints.recordOrderUsage.trim()
           : '/coupons/record-order-usage',
+      removeCoupon:
+        typeof pluginConfig?.endpoints?.removeCoupon === 'string' &&
+        pluginConfig.endpoints.removeCoupon.trim().length > 0
+          ? pluginConfig.endpoints.removeCoupon.trim()
+          : '/coupons/remove',
     },
     autoIntegrate: pluginConfig?.autoIntegrate !== false,
     access: {
@@ -333,6 +338,18 @@ export const sanitizePluginConfig = ({
         typeof pluginConfig?.orderIntegration?.orderPaidStatusValue === 'string'
           ? pluginConfig.orderIntegration.orderPaidStatusValue
           : 'paid',
+    },
+    multiTenant: {
+      enabled: toBoolean(pluginConfig?.multiTenant?.enabled, false),
+      tenantField:
+        typeof pluginConfig?.multiTenant?.tenantField === 'string' &&
+        pluginConfig.multiTenant.tenantField.trim().length > 0
+          ? pluginConfig.multiTenant.tenantField.trim()
+          : 'tenant',
+      resolveTenant:
+        typeof pluginConfig?.multiTenant?.resolveTenant === 'function'
+          ? pluginConfig.multiTenant.resolveTenant
+          : undefined,
     },
     roleConfig,
   }

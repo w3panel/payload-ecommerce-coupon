@@ -1,10 +1,17 @@
-import type { ApplyCouponHook, ApplyCouponResponse, PartnerDashboardData } from '../types'
+import type {
+  ApplyCouponHook,
+  ApplyCouponResponse,
+  PartnerDashboardData,
+  RemoveCouponHook,
+  RemoveCouponResponse,
+} from '../types'
 
 type EndpointInput =
   | string
   | {
       applyCoupon?: string
       validateCoupon?: string
+      removeCoupon?: string
       partnerStats?: string
       baseURL?: string
     }
@@ -12,6 +19,7 @@ type EndpointInput =
 const DEFAULT_ENDPOINTS = {
   applyCoupon: '/api/coupons/apply',
   validateCoupon: '/api/coupons/validate',
+  removeCoupon: '/api/coupons/remove',
   partnerStats: '/api/referrals/partner-stats',
 } as const
 
@@ -39,6 +47,7 @@ function resolveEndpoints(input?: EndpointInput) {
   return {
     applyCoupon: withBaseURL(input?.applyCoupon || DEFAULT_ENDPOINTS.applyCoupon, baseURL),
     validateCoupon: withBaseURL(input?.validateCoupon || DEFAULT_ENDPOINTS.validateCoupon, baseURL),
+    removeCoupon: withBaseURL(input?.removeCoupon || DEFAULT_ENDPOINTS.removeCoupon, baseURL),
     partnerStats: withBaseURL(input?.partnerStats || DEFAULT_ENDPOINTS.partnerStats, baseURL),
   }
 }
@@ -94,6 +103,7 @@ export async function useCouponCode(
     return {
       success: Boolean(data.success),
       message: (data.message as string) || 'Code applied',
+      alreadyApplied: data.alreadyApplied === true,
       discount: (data.discount as number) || (data.customerDiscount as number),
       partnerCommission: data.partnerCommission as number,
       customerDiscount: data.customerDiscount as number,
@@ -111,6 +121,53 @@ export async function useCouponCode(
           }
         : undefined,
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Network error'
+    return { success: false, message, error: message }
+  }
+}
+
+/**
+ * Remove the applied coupon/referral code from a cart.
+ * Works after a page reload: it needs only the cart (and the guest cart secret), not the code.
+ * @param options - Cart ID and optional guest cart secret
+ * @param endpointConfig - Optional endpoint override config
+ */
+export async function removeCouponCode(
+  options: RemoveCouponHook,
+  endpointConfig?: EndpointInput,
+): Promise<RemoveCouponResponse> {
+  const { cartID, secret } = options
+  if (cartID == null || cartID === '') {
+    return { success: false, message: 'Cart ID is required', error: 'Cart ID is missing' }
+  }
+
+  const endpoints = resolveEndpoints(endpointConfig)
+
+  try {
+    const response = await fetch(endpoints.removeCoupon, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        cartID,
+        ...(typeof secret === 'string' && secret.trim().length > 0
+          ? { secret: secret.trim() }
+          : {}),
+      }),
+    })
+
+    const data = (await response.json()) as Record<string, unknown>
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: (data.error as string) || 'Failed to remove code',
+        error: data.error as string,
+      }
+    }
+
+    return { success: Boolean(data.success), message: (data.message as string) || 'Code removed' }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Network error'
     return { success: false, message, error: message }

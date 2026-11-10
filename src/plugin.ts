@@ -5,6 +5,7 @@ import { createReferralCodesCollection } from './collections/createReferralCodes
 import { createReferralProgramsCollection } from './collections/createReferralProgramsCollection'
 import { applyCouponEndpoint } from './endpoints/applyCoupon'
 import { partnerStatsEndpoint } from './endpoints/partnerStats'
+import { removeCouponEndpoint } from './endpoints/removeCoupon'
 import { validateCouponEndpoint } from './endpoints/validateCoupon'
 import { recalculateCartHook } from './hooks/recalculateCart'
 import { CouponPluginOptions } from './types'
@@ -66,8 +67,12 @@ const ensureCouponCollectionEndpoints = ({
     endpointPath: pluginConfig.endpoints.validateCoupon,
     collectionSlug: couponsSlug,
   })
+  const removePath = toCollectionEndpointPath({
+    endpointPath: pluginConfig.endpoints.removeCoupon,
+    collectionSlug: couponsSlug,
+  })
 
-  if (!applyPath && !validatePath) return collection
+  if (!applyPath && !validatePath && !removePath) return collection
 
   const endpoints = asArray(collection.endpoints)
   const endpointKeys = new Set(
@@ -94,6 +99,18 @@ const ensureCouponCollectionEndpoints = ({
         path: applyPath,
         method: 'post',
         handler: applyCouponEndpoint({ pluginConfig }).handler,
+      })
+    }
+  }
+
+  if (removePath) {
+    const removeKey = `post:${removePath}`
+    if (!endpointKeys.has(removeKey)) {
+      endpointKeys.add(removeKey)
+      endpoints.push({
+        path: removePath,
+        method: 'post',
+        handler: removeCouponEndpoint({ pluginConfig }).handler,
       })
     }
   }
@@ -271,6 +288,7 @@ export const payloadEcommerceCouponPlugin =
 
     maybePushEndpoint(validateCouponEndpoint({ pluginConfig }))
     maybePushEndpoint(applyCouponEndpoint({ pluginConfig }))
+    maybePushEndpoint(removeCouponEndpoint({ pluginConfig }))
 
     if (pluginOptions.endpoints?.recordOrderUsage) {
       maybePushEndpoint(createRecordOrderUsageEndpoint({ pluginConfig }))

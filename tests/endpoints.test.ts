@@ -1221,7 +1221,7 @@ describe('Referral v2 Consistency', () => {
     expect(result.success).toBe(true)
   })
 
-  it('should detect already applied referral when relation is populated object', async () => {
+  it('should treat re-applying the cart referral (populated relation) as success', async () => {
     const referralCode = {
       id: 'ref-1',
       code: 'REF123',
@@ -1261,8 +1261,12 @@ describe('Referral v2 Consistency', () => {
     } as any)
     const result = await resp.json()
 
-    expect(resp.status).toBe(400)
-    expect(result.error).toBe('Referral code already applied to this cart')
+    // Re-applying the code already on the cart is a no-op success, so the UI can recover it.
+    expect(resp.status).toBe(200)
+    expect(result.success).toBe(true)
+    expect(result.alreadyApplied).toBe(true)
+    expect(result.referralCode.code).toBe('REF123')
+    expect(mockPayload.update).not.toHaveBeenCalled()
   })
 })
 

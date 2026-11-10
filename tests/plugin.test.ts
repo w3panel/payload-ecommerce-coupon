@@ -128,10 +128,11 @@ describe('Coupon Plugin', () => {
       const plugin = payloadEcommerceCoupon({ enabled: true })
       const testConfig = {} as any
       const result = await plugin(testConfig)
-      expect(result.endpoints).toHaveLength(2)
+      expect(result.endpoints).toHaveLength(3)
       expect(result.endpoints?.map((e: any) => e.path)).toEqual([
         '/coupons/validate',
         '/coupons/apply',
+        '/coupons/remove',
       ])
     })
 
@@ -142,10 +143,11 @@ describe('Coupon Plugin', () => {
       })
       const testConfig = {} as any
       const result = await plugin(testConfig)
-      expect(result.endpoints).toHaveLength(3)
+      expect(result.endpoints).toHaveLength(4)
       expect(result.endpoints?.map((e: any) => e.path)).toEqual([
         '/coupons/validate',
         '/coupons/apply',
+        '/coupons/remove',
         '/referrals/partner-stats',
       ])
     })
