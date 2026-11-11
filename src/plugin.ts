@@ -191,6 +191,7 @@ const createRecordOrderUsageEndpoint = ({
 
       const order = await payload.findByID({
         collection: pluginConfig.integration.collections.ordersSlug as any,
+        overrideAccess: true,
         id: orderId,
       })
 

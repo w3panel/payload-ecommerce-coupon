@@ -314,6 +314,7 @@ export const recalculateCartHook =
     if (productIds.length > 0) {
       const productsQuery = await req.payload.find({
         collection: collections.productsSlug,
+        overrideAccess: true,
         where: {
           id: { in: productIds },
         },
@@ -365,6 +366,7 @@ export const recalculateCartHook =
     if (pluginConfig.enableReferrals && appliedReferralID != null) {
       const referralQuery = await req.payload.find({
         collection: pluginConfig.collections.referralCodesSlug,
+        overrideAccess: true,
         where: { id: { equals: appliedReferralID } },
         limit: 1,
         depth: 1,
@@ -385,6 +387,7 @@ export const recalculateCartHook =
             : programId != null
               ? await req.payload.findByID({
                   collection: pluginConfig.collections.referralProgramsSlug,
+                  overrideAccess: true,
                   id: programId,
                 })
               : null
@@ -448,6 +451,7 @@ export const recalculateCartHook =
     } else if (appliedCouponID != null && canUseCouponWithReferral) {
       const couponQuery = await req.payload.find({
         collection: pluginConfig.collections.couponsSlug,
+        overrideAccess: true,
         where: { id: { equals: appliedCouponID } },
         limit: 1,
       })

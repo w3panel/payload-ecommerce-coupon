@@ -82,6 +82,7 @@ export const partnerStatsHandler =
     try {
       const referralCodesQuery = await payload.find({
         collection: pluginConfig.collections.referralCodesSlug,
+        overrideAccess: true,
         where: {
           partner: { equals: userID },
         },
@@ -123,6 +124,7 @@ export const partnerStatsHandler =
         if (referralCodeIDs.length > 0) {
           const ordersQuery = await payload.find({
             collection: collections.ordersSlug,
+            overrideAccess: true,
             where: {
               [fields.orderAppliedReferralCodeField]: {
                 in: referralCodeIDs,
@@ -181,6 +183,7 @@ export const partnerStatsHandler =
           try {
             const programData = await payload.findByID({
               collection: pluginConfig.collections.referralProgramsSlug,
+              overrideAccess: true,
               id: programID,
             })
 
