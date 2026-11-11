@@ -332,6 +332,7 @@ async function validateReferralCode({
   const cart = cartID
     ? await payload.findByID({
         collection: collections.cartsSlug,
+        overrideAccess: true,
         id: cartID,
         depth: 2,
       })

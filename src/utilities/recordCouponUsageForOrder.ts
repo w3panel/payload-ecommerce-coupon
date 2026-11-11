@@ -48,6 +48,7 @@ async function markOrderUsageRecorded({
 
   const latestOrder = await payload.findByID({
     collection: ordersSlug as any,
+    overrideAccess: true,
     id: orderID,
     depth: 0,
   })
@@ -59,6 +60,7 @@ async function markOrderUsageRecorded({
 
   await payload.update({
     collection: ordersSlug as any,
+    overrideAccess: true,
     id: orderID,
     data: {
       [USAGE_MARKER_FIELD]: new Date().toISOString(),
@@ -130,6 +132,7 @@ export async function recordCouponUsageForOrder(
   if (couponId) {
     const coupon = await payload.findByID({
       collection: pluginConfig.collections.couponsSlug as any,
+      overrideAccess: true,
       id: couponId,
       depth: 0,
     })
@@ -138,6 +141,7 @@ export async function recordCouponUsageForOrder(
       const currentUsage = asNumber((coupon as Record<string, unknown>).usageCount)
       await payload.update({
         collection: pluginConfig.collections.couponsSlug as any,
+        overrideAccess: true,
         id: couponId,
         data: {
           usageCount: currentUsage + 1,
@@ -150,6 +154,7 @@ export async function recordCouponUsageForOrder(
   if (referralCodeId) {
     const referralCode = await payload.findByID({
       collection: pluginConfig.collections.referralCodesSlug as any,
+      overrideAccess: true,
       id: referralCodeId,
       depth: 0,
     })
@@ -163,6 +168,7 @@ export async function recordCouponUsageForOrder(
 
       await payload.update({
         collection: pluginConfig.collections.referralCodesSlug as any,
+        overrideAccess: true,
         id: referralCodeId,
         data: {
           usageCount: currentUsage + 1,

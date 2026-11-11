@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0-beta.10] - 2026-11-11
+
+### Fixed
+
+- Server-side lookups and writes now pass `overrideAccess: true`, which Payload 4 no longer assumes: recording coupon and referral usage on a placed order (usage counts, partner earnings, the order usage marker), cart recalculation reading coupons, referral codes and programs, the order lookup in the usage endpoint, the cart lookup in referral validation, and partner stats after its own permission check. Without it these calls ran with no user and were refused, so usage was not recorded and discounts could drop off the cart.
+
 ## [4.0.0-beta.9] - 2026-11-10
 
 ### Security
